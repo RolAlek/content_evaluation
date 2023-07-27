@@ -6,6 +6,7 @@ from reviews.models import Title, Category, Genre
 
 class TitleSerializer(serializers.ModelSerializer):
     """Serializer модели Title."""
+
     rating = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=None
@@ -33,6 +34,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer модели Categories."""
+
     class Meta:
         model = Category
         fields = ('name', 'slug')
@@ -40,6 +42,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Serializer модели Genres."""
+
     class Meta:
         model = Genre
         fields = ('name', 'slug')

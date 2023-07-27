@@ -27,6 +27,7 @@ class ListСreateDestroyViewSet(
 
 class GenreViewSet(ListСreateDestroyViewSet):
     """ViewSet модели Genre."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -38,6 +39,7 @@ class GenreViewSet(ListСreateDestroyViewSet):
 
 class CategoryViewSet(ListСreateDestroyViewSet):
     """ViewSet модели Category."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -49,6 +51,7 @@ class CategoryViewSet(ListСreateDestroyViewSet):
 
 class TitleViewSet(ModelViewSet):
     """ViewSet модели Title."""
+
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)

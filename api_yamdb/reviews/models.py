@@ -51,9 +51,9 @@ class Title(models.Model):
         verbose_name='Название произведения',
         max_length=256
     )
-    description = models.SlugField(
+    description = models.TextField(
         verbose_name='Идентификатор произведения',
-        max_length=50
+        max_length=256
     )
     year = models.IntegerField(
         verbose_name='Год выпуска произведения',

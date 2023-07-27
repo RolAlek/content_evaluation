@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 class TitleCategoryGenrePagination(LimitOffsetPagination):
     """Pagination для Titles, Genres, Categories."""
+
     def get_paginated_response(self, data):
         if self.request.method == 'GET' and 'limit' in self.request.GET:
             return Response({
