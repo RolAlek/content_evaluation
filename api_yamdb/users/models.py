@@ -5,7 +5,7 @@ ROLES = (
     ('user', 'Пользователь'),
     ('moderator', 'Модератор'),
     ('admin', 'Администратор'),
-    ('root', 'адмиинистратор'),
+    ('superuser', 'Суперюзер'),
 )
 
 
@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
 
     email = models.EmailField(max_length=254, unique=True)
     bio = models.TextField(blank=True)
-    role = models.CharField(max_length=16, choices=ROLES)
+    role = models.CharField(max_length=16, choices=ROLES, default='user')
 
     def __str__(self) -> str:
         return self.username

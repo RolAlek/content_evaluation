@@ -1,18 +1,9 @@
 from rest_framework.decorators import action
-from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework import filters
 
 from .serializers import User
 from .serializers import UserSerializer
-
-
-class RetriveUpdateViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -29,8 +20,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get', 'patch'], detail=False)
     def me(self, request, *args, **kwargs):
-        """Маршрутизация дополнительных действий при GET-, PATCH-запросах
-         к api/v1/users/me/.
+        """
+        Маршрутизация дополнительных действий при GET-, PATCH-запросах к
+         api/v1/users/me/.
 
         При GET-запросе к эндпоинту получение данных своей учетной записи.
         При PATCH-запросе изменение данных своей учетной записи.
