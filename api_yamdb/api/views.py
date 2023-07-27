@@ -21,6 +21,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
     lookup_field = 'username'
 
     def get_instance(self):
