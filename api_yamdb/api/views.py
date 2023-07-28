@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 
-from api.serializers import CommentSerializer, ReviewSerializer, User, UserSerializer
+from api.serializers import CommentSerializer, ReviewSerializer, UserSerializer
 from reviews.models import Title, Review
+
+User = get_user_model()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -32,7 +35,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
- 
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """Набор представлений обрабатывающий запросы к эндпоинту 'users'."""
