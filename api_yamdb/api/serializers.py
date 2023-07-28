@@ -1,7 +1,9 @@
+from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from reviews.models import Title, Review, Comment
+from rest_framework.relations import SlugRelatedField
+from reviews.models import Title, Review, Comment, Category, Genre
 
 
 User = get_user_model()
@@ -17,7 +19,51 @@ class UserSerializer(serializers.ModelSerializer):
         )
         lookup_field = 'username'
 
-        
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Serializer модели Title."""
+
+    rating = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=None
+    )
+    genre = SlugRelatedField(
+        slug_field='slug',
+        read_only=True
+    )
+    category = SlugRelatedField(
+        slug_field='slug',
+        read_only=True
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating', 'description',
+                  'genre', 'category'
+                  )
+
+    def validate(self, data):
+        if data['year'] > datetime.now().year:
+            raise ValueError('Произведение не может быть из будущего')
+        return data
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Serializer модели Categories."""
+
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Serializer модели Genres."""
+
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализация отзывов."""
 
@@ -53,3 +99,4 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
         read_only_fields = ('review', 'author')
+
