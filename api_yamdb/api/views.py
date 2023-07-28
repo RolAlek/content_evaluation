@@ -1,13 +1,18 @@
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework import viewsets
-from rest_framework import filters
+from rest_framework import filters, generics, mixins, status, viewsets
 
-from .serializers import User
-from .serializers import UserSerializer
+from .serializers import SignupSerializer, User, UserSerializer
+from .utils import confirm_email_sendler
+
+
+class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Набор представлений обрабатывающий запросы к эндпоинту 'users'."""
+    """Вьюсет обрабатывающий запросы к эндпоинту 'users'."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -33,3 +38,25 @@ class UserViewSet(viewsets.ModelViewSet):
             return self.retrieve(request, *args, **kwargs)
         elif request.method == "PATCH":
             return self.partial_update(request, *args, **kwargs)
+
+
+class SignupView(generics.CreateAPIView):
+    """Регистрации нового пользователя и подтверждение по почте."""
+
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = SignupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.create(**serializer.validated_data)
+        confirm_code = default_token_generator.make_token(user)
+        confirm_email_sendler(
+            email=user.email,
+            confirm_code=confirm_code
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# TODO: написать представление для авторизации токена
+class ReceiveTokenView(generics.CreateAPIView):
+    ...
