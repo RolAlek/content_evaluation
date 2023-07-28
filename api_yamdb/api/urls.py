@@ -1,11 +1,13 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from api.views import ReviewViewSet, CommentViewSet
+from api.views import UserViewSet, ReviewViewSet, CommentViewSet
 
+  
 app_name = 'api'
 
-router = SimpleRouter()
+router_v1 = SimpleRouter()
+router_v1.register(prefix='users', viewset=UserViewSet)
 router.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
@@ -18,5 +20,5 @@ router.register(
 )
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
+    path('v1/', include(router_v1.urls)),
 ]

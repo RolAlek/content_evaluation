@@ -1,9 +1,23 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-
 from reviews.models import Title, Review, Comment
 
 
+User = get_user_model()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для CustomUser модели."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+        lookup_field = 'username'
+
+        
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализация отзывов."""
 
