@@ -71,13 +71,6 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Категория произведения',
     )
-    rating = models.ForeignKey(
-        'Review',
-        on_delete=models.CASCADE,
-        related_name='titles',
-        verbose_name='Оценка произведения',
-        null=True
-    )
 
     class Meta:
         verbose_name = 'Произведение'

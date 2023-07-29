@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -15,14 +16,10 @@ from rest_framework.generics import CreateAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (
-    CommentSerializer, ReviewSerializer, UserSerializer,
-    TitleSerializer, CategorySerializer, GenreSerializer
-)
     CommentSerializer, CategorySerializer, GenreSerializer,
     ReceiveTokenSerializer, ReviewSerializer, SignupSerializer,
     TitleSerializer, UserSerializer
 )
-from api.pagination import TitleCategoryGenrePagination
 from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
 from reviews.models import Title, Review, Genre, Category
@@ -64,7 +61,9 @@ class CategoryViewSet(ListСreateDestroyViewSet):
 class TitleViewSet(ModelViewSet):
     """ViewSet модели Title."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
@@ -73,8 +72,6 @@ class TitleViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            # Не использую get_object_or_404,
-            # т.к. в TitleSerializer в полеgenre не выставляется many=True
             genre=Genre.objects.all().filter(slug=self.request.data['genre']),
             category=get_object_or_404(
                 Category, slug=self.request.data['category'])

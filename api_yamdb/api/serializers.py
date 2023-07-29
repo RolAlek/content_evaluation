@@ -35,30 +35,6 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Serializer модели Title."""
-
-    rating = serializers.IntegerField(
-        read_only=True,
-        source='review.score'
-    )
-    genre = GenreSerializer(read_only=False, many=True, required=False)
-    category = CategorySerializer(read_only=False, required=False)
-
-    class Meta:
-        model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description',
-                  'genre', 'category'
-                  )
-
-    def validate(self, data):
-        print(data)
-        if ('year' in data
-           and data['year'] > int(datetime.now().year)):
-            raise ValueError('Произведение не может быть из будущего')
-        return data
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализация отзывов."""
 
@@ -88,6 +64,26 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Serializer модели Title."""
+    rating = serializers.IntegerField(read_only=True,)
+    genre = GenreSerializer(read_only=False, many=True, required=False)
+    category = CategorySerializer(read_only=False, required=False)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating', 'description',
+                  'genre', 'category'
+                  )
+
+    def validate(self, data):
+        print(data)
+        if ('year' in data
+           and data['year'] > int(datetime.now().year)):
+            raise ValueError('Произведение не может быть из будущего')
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):

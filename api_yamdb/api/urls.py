@@ -5,7 +5,7 @@ from api.views import (
     UserViewSet, ReviewViewSet, CommentViewSet, TitleViewSet, GenreViewSet,
     CategoryViewSet, ReceiveTokenView, SignupView, UserViewSet
 )
-  
+
 app_name = 'api'
 
 router_v1 = SimpleRouter()
