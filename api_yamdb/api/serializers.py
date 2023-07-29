@@ -40,6 +40,9 @@ class SignupSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-# TODO: доделать авторизацию по токену
-class ReceiveTokenSerializer(serializers.ModelSerializer):
-    ...
+
+class ReceiveTokenSerializer(serializers.Serializer):
+    """Сериализация получения jwt-токена."""
+
+    username = serializers.CharField(max_length=150, required=True)
+    confirm_code = serializers.CharField(max_length=150, required=True)

@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def confirm_email_sendler(email, confirm_code):
@@ -13,3 +14,13 @@ def confirm_email_sendler(email, confirm_code):
         recipient_list=(email,),
         fail_silently=False,
     )
+
+
+def get_auth_jwt_token(user):
+    """Генератор jwt-токена."""
+    token = RefreshToken.for_user(user)
+    message = {
+        'refresh': str(token),
+        'access': str(token.access_token),
+    }
+    return message
