@@ -15,6 +15,9 @@ from rest_framework.generics import CreateAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (
+    CommentSerializer, ReviewSerializer, UserSerializer,
+    TitleSerializer, CategorySerializer, GenreSerializer
+)
     CommentSerializer, CategorySerializer, GenreSerializer,
     ReceiveTokenSerializer, ReviewSerializer, SignupSerializer,
     TitleSerializer, UserSerializer
@@ -43,7 +46,6 @@ class GenreViewSet(ListСreateDestroyViewSet):
     serializer_class = GenreSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
-    pagination_class = TitleCategoryGenrePagination
     lookup_field = 'slug'
     permission_classes = (ReadOnly | IsAdmin,)
 
@@ -55,7 +57,6 @@ class CategoryViewSet(ListСreateDestroyViewSet):
     serializer_class = CategorySerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
-    pagination_class = TitleCategoryGenrePagination
     lookup_field = 'slug'
     permission_classes = (ReadOnly | IsAdmin,)
 
@@ -67,16 +68,38 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
-    pagination_class = TitleCategoryGenrePagination
     lookup_field = 'id'
     permission_classes = (ReadOnly | IsAdmin,)
 
     def perform_create(self, serializer):
         serializer.save(
-            genre=get_object_or_404(Genre, slug=self.request.POST['genre']),
+            # Не использую get_object_or_404,
+            # т.к. в TitleSerializer в полеgenre не выставляется many=True
+            genre=Genre.objects.all().filter(slug=self.request.data['genre']),
             category=get_object_or_404(
-                Category, slug=self.request.POST['category'])
+                Category, slug=self.request.data['category'])
         )
+
+    def perform_update(self, serializer):
+        if ('genre' in self.request.data
+           and 'category' in self.request.data):
+            serializer.save(
+                genre=Genre.objects.all().
+                filter(slug=self.request.data['genre']),
+                category=get_object_or_404(
+                    Category, slug=self.request.data['category'])
+            )
+        elif 'category' in self.request.data:
+            serializer.save(
+                category=get_object_or_404(
+                    Category, slug=self.request.data['category'])
+            )
+        elif 'genre' in self.request.data:
+            serializer.save(
+                genre=Genre.objects.all().
+                filter(slug=self.request.data['genre']),
+            )
+        serializer.save()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
