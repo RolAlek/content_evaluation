@@ -15,14 +15,10 @@ from rest_framework.generics import CreateAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (
-    CommentSerializer, ReviewSerializer, UserSerializer,
-    TitleSerializer, CategorySerializer, GenreSerializer
-)
     CommentSerializer, CategorySerializer, GenreSerializer,
     ReceiveTokenSerializer, ReviewSerializer, SignupSerializer,
     TitleSerializer, UserSerializer
 )
-from api.pagination import TitleCategoryGenrePagination
 from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
 from reviews.models import Title, Review, Genre, Category
@@ -30,7 +26,7 @@ from reviews.models import Title, Review, Genre, Category
 User = get_user_model()
 
 
-class ListСreateDestroyViewSet(
+class ListCreateDestroyViewSet(
     ListModelMixin,
     CreateModelMixin,
     DestroyModelMixin,
@@ -39,7 +35,7 @@ class ListСreateDestroyViewSet(
     pass
 
 
-class GenreViewSet(ListСreateDestroyViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """ViewSet модели Genre."""
 
     queryset = Genre.objects.all()
@@ -50,7 +46,7 @@ class GenreViewSet(ListСreateDestroyViewSet):
     permission_classes = (ReadOnly | IsAdmin,)
 
 
-class CategoryViewSet(ListСreateDestroyViewSet):
+class CategoryViewSet(ListCreateDestroyViewSet):
     """ViewSet модели Category."""
 
     queryset = Category.objects.all()
@@ -81,8 +77,10 @@ class TitleViewSet(ModelViewSet):
         )
 
     def perform_update(self, serializer):
-        if ('genre' in self.request.data
-           and 'category' in self.request.data):
+        if (
+            'genre' in self.request.data
+            and 'category' in self.request.data
+        ):
             serializer.save(
                 genre=Genre.objects.all().
                 filter(slug=self.request.data['genre']),

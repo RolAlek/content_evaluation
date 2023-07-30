@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
 from api.views import (
-    UserViewSet, ReviewViewSet, CommentViewSet, TitleViewSet, GenreViewSet,
+    ReviewViewSet, CommentViewSet, TitleViewSet, GenreViewSet,
     CategoryViewSet, ReceiveTokenView, SignupView, UserViewSet
 )
   
