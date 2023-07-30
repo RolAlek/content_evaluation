@@ -67,6 +67,10 @@ class GenreSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализация отзывов."""
 
+    author = serializers.StringRelatedField(
+        read_only=True,
+    )
+
     def validate_score(self, value):
         if 0 > value > 10:
             raise serializers.ValidationError('Оценка может быть от 1 до 10!')
@@ -89,16 +93,18 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
-        read_only_fields = ('title', 'author')
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализация комментариев."""
 
+    author = serializers.StringRelatedField(
+        read_only=True,
+    )
+
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('review', 'author')
 
 
 class SignupSerializer(serializers.ModelSerializer):
