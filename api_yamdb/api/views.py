@@ -2,16 +2,16 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework import filters, viewsets
+from rest_framework import viewsets, permissions, status
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from rest_framework.mixins import (
-    ListModelMixin, CreateModelMixin, DestroyModelMixin)
-from rest_framework.permissions import AllowAny
-from rest_framework.viewsets import (
-    ModelViewSet, GenericViewSet)
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+)
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.generics import CreateAPIView
-from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (
@@ -20,8 +20,9 @@ from api.serializers import (
     TitleSerializer, UserSerializer
 )
 from api.pagination import TitleCategoryGenrePagination
-from reviews.models import Title, Review, Genre, Category
+from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
+from reviews.models import Title, Review, Genre, Category
 
 User = get_user_model()
 
@@ -44,7 +45,7 @@ class GenreViewSet(ListСreateDestroyViewSet):
     search_fields = ('name',)
     pagination_class = TitleCategoryGenrePagination
     lookup_field = 'slug'
-    # необходимо добваить permissions
+    permission_classes = (ReadOnly | IsAdmin,)
 
 
 class CategoryViewSet(ListСreateDestroyViewSet):
@@ -56,7 +57,7 @@ class CategoryViewSet(ListСreateDestroyViewSet):
     search_fields = ('name',)
     pagination_class = TitleCategoryGenrePagination
     lookup_field = 'slug'
-    # необходимо добваить permissions
+    permission_classes = (ReadOnly | IsAdmin,)
 
 
 class TitleViewSet(ModelViewSet):
@@ -68,7 +69,7 @@ class TitleViewSet(ModelViewSet):
     filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
     pagination_class = TitleCategoryGenrePagination
     lookup_field = 'id'
-    # необходимо добваить permissions
+    permission_classes = (ReadOnly | IsAdmin,)
 
     def perform_create(self, serializer):
         serializer.save(
@@ -82,6 +83,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет отзывов."""
 
     serializer_class = ReviewSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrStaff,
+    )
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -96,6 +101,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
 
     serializer_class = CommentSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrStaff,
+    )
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
@@ -114,11 +123,16 @@ class UserViewSet(ModelViewSet):
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
+    permission_classes = (IsAdmin,)
 
     def get_instance(self):
         return self.request.user
 
-    @action(methods=['get', 'patch'], detail=False)
+    @action(
+        methods=['get', 'patch'],
+        detail=False,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
     def me(self, request, *args, **kwargs):
         """
         Маршрутизация дополнительных действий при GET-, PATCH-запросах к
@@ -140,7 +154,7 @@ class SignupView(CreateAPIView):
 
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
@@ -158,7 +172,7 @@ class ReceiveTokenView(CreateAPIView):
     """Получение JWT-токена для авторизации пользователя."""
     queryset = User.objects.all()
     serializer_class = ReceiveTokenSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = ReceiveTokenSerializer(data=request.data)
