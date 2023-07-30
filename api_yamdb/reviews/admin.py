@@ -3,6 +3,7 @@ from django.contrib import admin
 from reviews.models import Category, Comment, Genre, Review, Title
 
 
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Администрирование категорий произведений."""
 
@@ -13,6 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('name',)[:10]
 
 
+@admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     """Администрирование комментариев произведения."""
 
@@ -22,6 +24,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display_links = ('text',)[:10]
 
 
+@admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     """Администрирование жанров произведений."""
 
@@ -32,6 +35,7 @@ class GenreAdmin(admin.ModelAdmin):
     list_display_links = ('name',)[:10]
 
 
+@admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     """Администрированеи отзывов произведений."""
 
@@ -41,6 +45,7 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display_links = ('title',)[:10]
 
 
+@admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
     """Администрирование произведений."""
 
@@ -49,10 +54,3 @@ class TitleAdmin(admin.ModelAdmin):
     list_editable = ('description', 'year', 'category',)
     search_fields = ('name', 'genre', 'category',)
     list_display_links = ('name',)[:10]
-
-
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Comment, CommentAdmin)
-admin.site.register(Genre, GenreAdmin)
-admin.site.register(Review, ReviewAdmin)
-admin.site.register(Title, TitleAdmin)
