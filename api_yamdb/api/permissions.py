@@ -31,7 +31,7 @@ class IsAdmin(permissions.BasePermission):
         if request.user.is_authenticated:
             return (
                 request.user.is_superuser
-                or request.user.role == 'admin'
+                or request.user.is_admin
             )
         else:
             return False
