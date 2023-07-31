@@ -145,6 +145,10 @@ class UserViewSet(ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
     permission_classes = (IsAdmin,)
+    http_method_names = ('get', 'post', 'patch', 'delete', 'head', 'options')
+
+    def perform_update(self, serializer):
+        return serializer.save(role=self.request.user.role)
 
     def get_instance(self):
         return self.request.user
@@ -180,11 +184,21 @@ class SignupView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        email = serializer.validated_data.get('email')
+
+        if User.objects.filter(username=username, email=email).exists():
+            user = get_object_or_404(User, username=username, email=email)
+            confirmation_code = default_token_generator.make_token(user)
+            confirm_email_sendler(email=user.email,
+                                  confirmation_code=confirmation_code)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         user = User.objects.create(**serializer.validated_data)
-        confirm_code = default_token_generator.make_token(user)
+        confirmation_code = default_token_generator.make_token(user)
         confirm_email_sendler(
             email=user.email,
-            confirm_code=confirm_code
+            confirmation_code=confirmation_code
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -198,10 +212,23 @@ class ReceiveTokenView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = ReceiveTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        confirm_code = serializer.validated_data.get('confirmation_code')
 
+        if not User.objects.filter(username=username).exists():
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_404_NOT_FOUND
+            )
         user = get_object_or_404(
             User,
             username=serializer.validated_data.get('username'),
         )
+        if not default_token_generator.check_token(user, confirm_code):
+            return Response(
+                data=serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         token = get_auth_jwt_token(user)
         return Response(token, status=status.HTTP_200_OK)

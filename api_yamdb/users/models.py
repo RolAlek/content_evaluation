@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 
 USER = 'user'
 MODERATOR = 'moderator'
@@ -20,9 +21,24 @@ class CustomUser(AbstractUser):
     role: str: роль пользователя.
     """
 
-    email = models.EmailField(max_length=254, unique=True)
-    bio = models.TextField(blank=True)
-    role = models.CharField(max_length=16, choices=ROLES, default='user')
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name='Имя пользователя',
+        db_index=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$',
+            message='Имя пользователя содержит недопустимый символ'
+        )]
+    )
+    email = models.EmailField('Почта', max_length=254, unique=True)
+    bio = models.TextField('Биография', blank=True)
+    role = models.CharField(
+        verbose_name='Роль',
+        max_length=16,
+        choices=ROLES,
+        default='user'
+    )
 
     @property
     def is_user(self):

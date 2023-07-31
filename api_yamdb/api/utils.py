@@ -3,12 +3,12 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-def confirm_email_sendler(email, confirm_code):
+def confirm_email_sendler(email, confirmation_code):
     """Функция для отправки сообщения пользователю с кодом подтверждения."""
     send_mail(
         subject='Код подтверждения',
         message=(
-            f'Ваш код регистрации учетной записи: {confirm_code}.\n'
+            f'Ваш код регистрации учетной записи: {confirmation_code}.\n'
         ),
         from_email=settings.YAMDB_EMAIL,
         recipient_list=(email,),
