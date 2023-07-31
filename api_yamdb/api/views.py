@@ -1,5 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
@@ -60,7 +61,9 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 class TitleViewSet(ModelViewSet):
     """ViewSet модели Title."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
@@ -69,8 +72,6 @@ class TitleViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            # Не использую get_object_or_404,
-            # т.к. в TitleSerializer в полеgenre не выставляется many=True
             genre=Genre.objects.all().filter(slug=self.request.data['genre']),
             category=get_object_or_404(
                 Category, slug=self.request.data['category'])

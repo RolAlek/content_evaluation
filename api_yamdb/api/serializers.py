@@ -40,7 +40,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
     rating = serializers.IntegerField(
         read_only=True,
-        source='review.score'
     )
     genre = GenreSerializer(read_only=False, many=True, required=False)
     category = CategorySerializer(read_only=False, required=False)
@@ -52,7 +51,6 @@ class TitleSerializer(serializers.ModelSerializer):
                   )
 
     def validate(self, data):
-        print(data)
         if ('year' in data
            and data['year'] > int(datetime.now().year)):
             raise ValueError('Произведение не может быть из будущего')
