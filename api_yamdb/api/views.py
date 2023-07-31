@@ -176,7 +176,7 @@ class UserViewSet(ModelViewSet):
 
 
 class SignupView(CreateAPIView):
-    """Регистрации нового пользователя и подтверждение по почте."""
+    """Регистрации нового пользователя с подтверждением по почте."""
 
     queryset = User.objects.all()
     serializer_class = SignupSerializer
@@ -184,18 +184,33 @@ class SignupView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')
+        email = request.data.get('email')
+        username = request.data.get('username')
+        user = User.objects.filter(email=email)
+        reserved_username = User.objects.filter(username=username)
 
-        if User.objects.filter(username=username, email=email).exists():
-            user = get_object_or_404(User, username=username, email=email)
+        if user.exists():
+            if not reserved_username.exists():
+                serializer.is_valid(raise_exception=True)
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            user = get_object_or_404(User, email=email)
             confirmation_code = default_token_generator.make_token(user)
-            confirm_email_sendler(email=user.email,
-                                  confirmation_code=confirmation_code)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            confirm_email_sendler(
+                email=user.email,
+                confirmation_code=confirmation_code
+            )
+            return Response(
+                {'message': 'Пользователь с такими данными уже существует!'
+                 ' Код отправлен повторно! Проверьте почту!'},
+                status=status.HTTP_200_OK
+            )
 
-        user = User.objects.create(**serializer.validated_data)
+        serializer.is_valid(raise_exception=True)
+        user, create = User.objects.get_or_create(**serializer.validated_data)
         confirmation_code = default_token_generator.make_token(user)
         confirm_email_sendler(
             email=user.email,
