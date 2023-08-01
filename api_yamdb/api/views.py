@@ -22,8 +22,9 @@ from api.serializers import (
 )
 from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
+from api.filters import TitleCustomFilter
 from reviews.models import Title, Review, Genre, Category
-from .filters import TitleCustomFilter
+
 
 User = get_user_model()
 
