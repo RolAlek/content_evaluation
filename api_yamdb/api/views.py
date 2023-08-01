@@ -18,7 +18,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from api.serializers import (
     CommentSerializer, CategorySerializer, GenreSerializer,
     ReceiveTokenSerializer, ReviewSerializer, SignupSerializer,
-    TitleSerializer, UserSerializer
+    UserSerializer, TitleReadSerializer, TitleWriteSerializer
 )
 from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
@@ -64,41 +64,15 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
     ).all()
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
     lookup_field = 'id'
     permission_classes = (ReadOnly | IsAdmin,)
 
-    def perform_create(self, serializer):
-        serializer.save(
-            genre=Genre.objects.all().filter(slug=self.request.data['genre']),
-            category=get_object_or_404(
-                Category, slug=self.request.data['category'])
-        )
-
-    def perform_update(self, serializer):
-        if (
-            'genre' in self.request.data
-            and 'category' in self.request.data
-        ):
-            serializer.save(
-                genre=Genre.objects.all().
-                filter(slug=self.request.data['genre']),
-                category=get_object_or_404(
-                    Category, slug=self.request.data['category'])
-            )
-        elif 'category' in self.request.data:
-            serializer.save(
-                category=get_object_or_404(
-                    Category, slug=self.request.data['category'])
-            )
-        elif 'genre' in self.request.data:
-            serializer.save(
-                genre=Genre.objects.all().
-                filter(slug=self.request.data['genre']),
-            )
-        serializer.save()
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

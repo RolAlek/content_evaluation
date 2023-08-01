@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from reviews.models import Title, Review, Comment, Category, Genre
 
-
 User = get_user_model()
 
 
@@ -33,16 +32,15 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     """Serializer модели Title."""
 
-    rating = serializers.IntegerField(
-        read_only=True,
-    )
-    genre = GenreSerializer(read_only=False, many=True, required=False)
-    category = CategorySerializer(read_only=False, required=False)
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Title
@@ -50,9 +48,29 @@ class TitleSerializer(serializers.ModelSerializer):
                   'genre', 'category'
                   )
 
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True,
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category'
+                  )
+
     def validate(self, data):
-        if ('year' in data
-           and data['year'] > int(datetime.now().year)):
+        if (
+            'year' in data
+            and data['year'] > int(datetime.now().year)
+        ):
             raise ValueError('Произведение не может быть из будущего')
         return data
 
