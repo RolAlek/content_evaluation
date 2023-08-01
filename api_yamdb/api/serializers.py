@@ -2,21 +2,9 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from reviews.models import Title, Review, Comment, Category, Genre
-
+from reviews.models import Comment, Category, Genre, Title, Review
 
 User = get_user_model()
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для CustomUser модели."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
-        )
-        lookup_field = 'username'
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -33,6 +21,47 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug')
+        lookup_field = 'slug'
+
+
+class TitleReadSerializer(serializers.ModelSerializer):
+    """Serializer модели Title."""
+
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating', 'description',
+                  'genre', 'category'
+                  )
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True,
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category'
+                  )
+
+    def validate(self, data):
+        if (
+            'year' in data
+            and data['year'] > int(datetime.now().year)
+        ):
+            raise ValueError('Произведение не может быть из будущего')
+        return data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -66,26 +95,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Serializer модели Title."""
-    rating = serializers.IntegerField(read_only=True,)
-    genre = GenreSerializer(read_only=False, many=True, required=False)
-    category = CategorySerializer(read_only=False, required=False)
-
-    class Meta:
-        model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description',
-                  'genre', 'category'
-                  )
-
-    def validate(self, data):
-        print(data)
-        if ('year' in data
-           and data['year'] > int(datetime.now().year)):
-            raise ValueError('Произведение не может быть из будущего')
-        return data
-
-
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализация комментариев."""
 
@@ -99,29 +108,35 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ('review', 'author')
 
 
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализация работы с пользователями."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+        lookup_field = 'username'
+
+
 class SignupSerializer(serializers.ModelSerializer):
-    """Сериализатор регистрации нового пользователя."""
+    """Сериализация регистрации нового пользователя."""
 
     class Meta:
         model = User
         fields = ('username', 'email')
 
     def validate(self, attrs):
-        username = attrs.get('username')
-
-        if username.lower() == 'me':
+        """
+        Запрет на использование 'me' в качестве имени пользователя.
+        Проверка на использование неуникального email.
+        """
+        if attrs.get('username').lower() == 'me':
             raise serializers.ValidationError(
                 'Использовать "me" в качестве имени пользователя запрещено!'
             )
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                f'Пользователь с именем {username} существует!'
-                f' Придумайте другое имя!'
-            )
         if User.objects.filter(email=attrs.get('email')).exists():
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует!'
-            )
+            raise serializers.ValidationError('Email уже используется!')
         return attrs
 
 
@@ -129,4 +144,4 @@ class ReceiveTokenSerializer(serializers.Serializer):
     """Сериализация получения jwt-токена."""
 
     username = serializers.CharField(max_length=150, required=True)
-    confirm_code = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(max_length=150, required=True)

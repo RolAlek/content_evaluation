@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 
 USER = 'user'
 MODERATOR = 'moderator'
@@ -15,14 +16,36 @@ class CustomUser(AbstractUser):
     """Кастомная модель пользователя.
 
     Атрибуты:
-    email: str: электронный адрес пользователя, обязательное поле.
-    bio: str: биография пользователя.
-    role: str: роль пользователя.
+    email -- символьное поле для хранения адреса электронной почты
+     пользователя. Уникальное значение. -> str
+    bio -- текстовое поле для хранения биографии пользователя.
+     Необязательное значение. -> str
+    role -- символьное поле для хранения ролей пользователя.
+     Значение по умалчанию == 'user'. -> str
     """
 
-    email = models.EmailField(max_length=254, unique=True)
-    bio = models.TextField(blank=True)
-    role = models.CharField(max_length=16, choices=ROLES, default='user')
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name='Имя пользователя',
+        db_index=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$',
+            message='Имя пользователя содержит недопустимый символ'
+        )]
+    )
+    email = models.EmailField('Почта', max_length=254, unique=True)
+    bio = models.TextField('Биография', blank=True)
+    role = models.CharField(
+        verbose_name='Роль',
+        max_length=16,
+        choices=ROLES,
+        default='user'
+    )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     @property
     def is_user(self):
