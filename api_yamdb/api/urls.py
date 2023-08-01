@@ -5,7 +5,7 @@ from api.views import (
     ReviewViewSet, CommentViewSet, TitleViewSet, GenreViewSet,
     CategoryViewSet, ReceiveTokenView, SignupView, UserViewSet
 )
-  
+
 app_name = 'api'
 
 router_v1 = SimpleRouter()
@@ -40,7 +40,6 @@ auth_patterns = [
     path('signup/', SignupView.as_view()),
     path('token/', ReceiveTokenView.as_view()),
 ]
-
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
     path('v1/auth/', include(auth_patterns)),

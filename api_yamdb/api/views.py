@@ -22,7 +22,9 @@ from api.serializers import (
 )
 from api.permissions import IsAuthorOrStaff, ReadOnly, IsAdmin
 from api.utils import confirm_email_sendler, get_auth_jwt_token
+from api.filters import TitleCustomFilter
 from reviews.models import Title, Review, Genre, Category
+
 
 User = get_user_model()
 
@@ -65,7 +67,7 @@ class TitleViewSet(ModelViewSet):
         rating=Avg('reviews__score')
     ).all()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'category__slug', 'genre__slug')
+    filterset_class = TitleCustomFilter
     lookup_field = 'id'
     permission_classes = (ReadOnly | IsAdmin,)
 
@@ -112,7 +114,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(ModelViewSet):
-    """Вьюсет обрабатывающий запросы к эндпоинту 'users'."""
+    """Работа администратора и superuser с пользователями."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -150,7 +152,13 @@ class UserViewSet(ModelViewSet):
 
 
 class SignupView(CreateAPIView):
-    """Регистрации нового пользователя с подтверждением по почте."""
+    """
+    Регистрация нового пользователя и отправка кода подтверждения на почту
+    указанную пользователем.
+
+    Если email используется, а имя пользователя свободно - отправить код 400,
+    иначе повторно отправляется код подтверждения на указанный email.
+    """
 
     queryset = User.objects.all()
     serializer_class = SignupSerializer
@@ -194,31 +202,30 @@ class SignupView(CreateAPIView):
 
 
 class ReceiveTokenView(CreateAPIView):
-    """Получение JWT-токена для авторизации пользователя."""
+    """Получение JWT-токена для авторизации пользователя.
+
+    Проверка когда подтверждения на валидность. Если код невалидный -
+     пользователю возвращается 400й код - bad request.
+    """
+
     queryset = User.objects.all()
     serializer_class = ReceiveTokenSerializer
     permission_classes = (permissions.AllowAny,)
 
     def create(self, request, *args, **kwargs):
+        """Создание JWT-токена."""
         serializer = ReceiveTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get('username')
         confirm_code = serializer.validated_data.get('confirmation_code')
-
-        if not User.objects.filter(username=username).exists():
-            return Response(
-                data=serializer.errors,
-                status=status.HTTP_404_NOT_FOUND
-            )
         user = get_object_or_404(
             User,
             username=serializer.validated_data.get('username'),
         )
+
         if not default_token_generator.check_token(user, confirm_code):
             return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         token = get_auth_jwt_token(user)
         return Response(token, status=status.HTTP_200_OK)
