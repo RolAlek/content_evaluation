@@ -77,7 +77,7 @@ python manage.py runserver
 администратора Django. Она доступна по адресу:
 
 ```
-http://<адрес_вашего_проекта>/redoc/
+http://<адрес_вашего_проекта>/admin/
 ```
 
 ## Документация
@@ -95,7 +95,7 @@ http://<адрес_вашего_проекта>/redoc/
 Адрес запроса:
 
 ```
-POST http://127.0.0.1:8000/api/v1/auth/signup/
+POST http://<адрес_вашего_проекта>/api/v1/auth/signup/
 ```
 
 Тело запроса:
@@ -122,7 +122,7 @@ POST http://127.0.0.1:8000/api/v1/auth/signup/
 ### Получение JWT-токенов
 
 ```
-POST http://127.0.0.1:8000/api/v1/auth/token/
+POST http://<адрес_вашего_проекта>/api/v1/auth/token/
 ```
 
 Тело запроса:
@@ -145,7 +145,7 @@ POST http://127.0.0.1:8000/api/v1/auth/token/
 ### Получение информации о произведении
 
 ```
-GET http://127.0.0.1:8000/api/v1/titles/{titles_id}/
+GET http://<адрес_вашего_проекта>/api/v1/titles/{titles_id}/
 ```
 
 Ответ:
