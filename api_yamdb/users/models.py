@@ -16,9 +16,12 @@ class CustomUser(AbstractUser):
     """Кастомная модель пользователя.
 
     Атрибуты:
-    email: str: электронный адрес пользователя, обязательное поле.
-    bio: str: биография пользователя.
-    role: str: роль пользователя.
+    email -- символьное поле для хранения адреса электронной почты
+     пользователя. Уникальное значение. -> str
+    bio -- текстовое поле для хранения биографии пользователя.
+     Необязательное значение. -> str
+    role -- символьное поле для хранения ролей пользователя.
+     Значение по умалчанию == 'user'. -> str
     """
 
     username = models.CharField(
@@ -39,6 +42,10 @@ class CustomUser(AbstractUser):
         choices=ROLES,
         default='user'
     )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     @property
     def is_user(self):
