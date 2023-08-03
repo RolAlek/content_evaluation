@@ -105,11 +105,19 @@ class CommentViewSet(viewsets.ModelViewSet):
     )
 
     def get_queryset(self):
-        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            klass=Review,
+            id=self.kwargs.get('review_id'),
+            title__id=self.kwargs.get('title_id')
+        )
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            klass=Review,
+            id=self.kwargs.get('review_id'),
+            title__id=self.kwargs.get('title_id')
+        )
         serializer.save(author=self.request.user, review=review)
 
 
@@ -145,10 +153,9 @@ class UserViewSet(ModelViewSet):
         """
 
         self.get_object = self.get_instance
-        if request.method == "GET":
-            return self.retrieve(request, *args, **kwargs)
-        elif request.method == "PATCH":
+        if request.method == "PATCH":
             return self.partial_update(request, *args, **kwargs)
+        return self.retrieve(request, *args, **kwargs)
 
 
 class SignupView(CreateAPIView):
