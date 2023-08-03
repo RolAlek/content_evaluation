@@ -15,11 +15,11 @@ class CustomUser(AbstractUser):
      Значение по умалчанию == 'user'. -> str
     """
 
-    USER = 'user'
+    SIMPLE_USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
     ROLES = (
-        (USER, 'Пользователь'),
+        (SIMPLE_USER, 'Пользователь'),
         (MODERATOR, 'Модератор'),
         (ADMIN, 'Администратор'),
     )
@@ -49,7 +49,7 @@ class CustomUser(AbstractUser):
 
     @property
     def is_user(self):
-        return self.role == self.USER
+        return self.role == self.SIMPLE_USERUSER
 
     @property
     def is_admin(self):
