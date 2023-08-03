@@ -15,7 +15,7 @@
 
 😎 [Сергей Колтыгин](https://github.com/cmipro)
 
-😎 [Александр Роль](https://github.com/RolAlek)
+😎 [Роль Александр](https://github.com/RolAlek)
 
 😎 [Илья Киселёв](https://github.com/welesik)
 
