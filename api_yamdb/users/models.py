@@ -2,15 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 
-USER = 'user'
-MODERATOR = 'moderator'
-ADMIN = 'admin'
-ROLES = (
-    (USER, 'Пользователь'),
-    (MODERATOR, 'Модератор'),
-    (ADMIN, 'Администратор'),
-)
-
 
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя.
@@ -23,6 +14,15 @@ class CustomUser(AbstractUser):
     role -- символьное поле для хранения ролей пользователя.
      Значение по умалчанию == 'user'. -> str
     """
+
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+    ROLES = (
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
+    )
 
     username = models.CharField(
         max_length=150,
@@ -38,7 +38,7 @@ class CustomUser(AbstractUser):
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(
         verbose_name='Роль',
-        max_length=16,
+        max_length=50,
         choices=ROLES,
         default='user'
     )
@@ -49,15 +49,15 @@ class CustomUser(AbstractUser):
 
     @property
     def is_user(self):
-        return self.role == USER
+        return self.role == self.USER
 
     @property
     def is_admin(self):
-        return self.role == ADMIN
+        return self.role == self.ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == MODERATOR
+        return self.role == self.MODERATOR
 
     def __str__(self) -> str:
         return self.username
