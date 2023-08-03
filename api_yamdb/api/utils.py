@@ -19,8 +19,7 @@ def confirm_email_sendler(email, confirmation_code):
 def get_auth_jwt_token(user):
     """Генератор jwt-токена."""
     token = RefreshToken.for_user(user)
-    message = {
+    return {
         'refresh': str(token),
         'access': str(token.access_token),
     }
-    return message
