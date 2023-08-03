@@ -206,7 +206,7 @@ class Comment(models.Model):
         verbose_name='Отзыв',
     )
     pub_date = models.DateTimeField(auto_now_add=True)
-    text = models.TextField(verbose_name='Текст комментария', )
+    text = models.TextField(verbose_name='Текст комментария')
 
     class Meta:
         verbose_name = 'Комментарий'
