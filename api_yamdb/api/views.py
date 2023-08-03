@@ -176,10 +176,9 @@ class SignupView(CreateAPIView):
         email = request.data.get('email')
         username = request.data.get('username')
         user = User.objects.filter(email=email)
-        reserved_username = User.objects.filter(username=username)
 
-        if user.exists():
-            if not reserved_username.exists():
+        if User.objects.filter(email=email).exists():
+            if not User.objects.filter(username=username).exists():
                 serializer.is_valid(raise_exception=True)
                 return Response(
                     serializer.errors,
@@ -187,10 +186,9 @@ class SignupView(CreateAPIView):
                 )
 
             user = get_object_or_404(User, email=email)
-            confirmation_code = default_token_generator.make_token(user)
             confirm_email_sendler(
                 email=user.email,
-                confirmation_code=confirmation_code
+                user=user
             )
             return Response(
                 {'message': 'Пользователь с такими данными уже существует!'
@@ -200,10 +198,9 @@ class SignupView(CreateAPIView):
 
         serializer.is_valid(raise_exception=True)
         user, create = User.objects.get_or_create(**serializer.validated_data)
-        confirmation_code = default_token_generator.make_token(user)
         confirm_email_sendler(
             email=user.email,
-            confirmation_code=confirmation_code
+            user=user
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
