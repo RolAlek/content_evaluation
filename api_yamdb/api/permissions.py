@@ -11,15 +11,14 @@ class IsAuthorOrStaff(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.user.is_authenticated:
+        elif request.user.is_authenticated:
             return (
                 request.user == obj.author
                 or request.user.is_superuser
                 or request.user.is_admin
                 or request.user.is_moderator
             )
-        else:
-            return False
+        return False
 
 
 class IsAdmin(permissions.BasePermission):
@@ -33,8 +32,7 @@ class IsAdmin(permissions.BasePermission):
                 request.user.is_superuser
                 or request.user.is_admin
             )
-        else:
-            return False
+        return False
 
 
 class ReadOnly(permissions.BasePermission):
