@@ -18,8 +18,6 @@ class IsAuthorOrStaff(permissions.BasePermission):
                 or request.user.is_admin
                 or request.user.is_moderator
             )
-        else:
-            return False
 
 
 class IsAdmin(permissions.BasePermission):
@@ -33,8 +31,6 @@ class IsAdmin(permissions.BasePermission):
                 request.user.is_superuser
                 or request.user.is_admin
             )
-        else:
-            return False
 
 
 class ReadOnly(permissions.BasePermission):
