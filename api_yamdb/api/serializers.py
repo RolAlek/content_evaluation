@@ -1,7 +1,9 @@
 from datetime import datetime
 
+from django.contrib.auth.tokens import default_token_generator
 from django.core.validators import RegexValidator
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Comment, Category, Genre, Title, Review
@@ -161,3 +163,10 @@ class ReceiveTokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(max_length=150, required=True)
+
+    def validate(self, attrs):
+        user = get_object_or_404(User, username=attrs.get('username'))
+        confirmation_code = attrs.get('confirmation_code')
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise serializers.ValidationError('Неверный код подтверждения!')
+        return attrs
