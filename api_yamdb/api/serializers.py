@@ -118,7 +118,7 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
 
 
-class SignupSerializer(serializers.Serializer):
+class SignupSerializer(serializers.ModelSerializer):
     """Сериализация регистрации нового пользователя."""
 
     username = serializers.CharField(
@@ -131,6 +131,10 @@ class SignupSerializer(serializers.Serializer):
     )
     email = serializers.EmailField(max_length=254, required=True)
 
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
     def validate(self, attrs):
         """
         Запрет на использование 'me' в качестве имени пользователя.
@@ -138,23 +142,21 @@ class SignupSerializer(serializers.Serializer):
         """
         email = attrs.get('email')
         username = attrs.get('username')
-        user_to_username = User.objects.filter(username=username)
-        user_to_email = User.objects.filter(email=email)
+        user_to_username = User.objects.filter(username=username).exists()
+        user_to_email = User.objects.filter(email=email).exists()
 
         if username.lower() == 'me':
             raise serializers.ValidationError(
                 'Использовать "me" в качестве имени пользователя запрещено!'
             )
-        if user_to_email.exists():
-            if not user_to_username.exists():
-                raise serializers.ValidationError(
-                    f'Пользователь с email {email} уже существует!'
-                )
-        if user_to_username.exists():
-            if not user_to_email.exists():
-                raise serializers.ValidationError(
-                    f'Имя пользователя "{username}" уже занято!'
-                )
+        if user_to_email and not user_to_username:
+            raise serializers.ValidationError(
+                f'Пользователь с email {email} уже существует!'
+            )
+        if user_to_username and not user_to_email:
+            raise serializers.ValidationError(
+                f'Имя пользователя "{username}" уже занято!'
+            )
         return attrs
 
 
