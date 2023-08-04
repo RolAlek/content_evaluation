@@ -15,7 +15,8 @@ def confirm_email_sendler(email: str, user: CustomUser) -> None:
     send_mail(
         subject='Код подтверждения',
         message=(
-            f'Ваш код регистрации учетной записи: {confirmation_code}.'),
+            f'Ваш код регистрации учетной записи: {confirmation_code}.'
+        ),
         from_email=settings.YAMDB_EMAIL,
         recipient_list=(email,),
         fail_silently=False,

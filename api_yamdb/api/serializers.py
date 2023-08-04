@@ -1,6 +1,9 @@
 from datetime import datetime
 
+from django.contrib.auth.tokens import default_token_generator
+from django.core.validators import RegexValidator
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Comment, Category, Genre, Title, Review
@@ -118,21 +121,42 @@ class UserSerializer(serializers.ModelSerializer):
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализация регистрации нового пользователя."""
 
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=(RegexValidator(
+            regex=r'^[\w.@+-]+$',
+            message='Имя пользователя содержит недопустимые символы'
+        ),)
+    )
+    email = serializers.EmailField(max_length=254, required=True)
+
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username', 'email',)
 
     def validate(self, attrs):
         """
         Запрет на использование 'me' в качестве имени пользователя.
-        Проверка на использование неуникального email.
+        Проверки на использование неуникального email и username.
         """
-        if attrs.get('username').lower() == 'me':
+        email = attrs.get('email')
+        username = attrs.get('username')
+        user_to_username = User.objects.filter(username=username).exists()
+        user_to_email = User.objects.filter(email=email).exists()
+
+        if username.lower() == 'me':
             raise serializers.ValidationError(
                 'Использовать "me" в качестве имени пользователя запрещено!'
             )
-        if User.objects.filter(email=attrs.get('email')).exists():
-            raise serializers.ValidationError('Email уже используется!')
+        if user_to_email and not user_to_username:
+            raise serializers.ValidationError(
+                f'Пользователь с email {email} уже существует!'
+            )
+        if user_to_username and not user_to_email:
+            raise serializers.ValidationError(
+                f'Имя пользователя "{username}" уже занято!'
+            )
         return attrs
 
 
@@ -141,3 +165,10 @@ class ReceiveTokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(max_length=150, required=True)
+
+    def validate(self, attrs):
+        user = get_object_or_404(User, username=attrs.get('username'))
+        confirmation_code = attrs.get('confirmation_code')
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise serializers.ValidationError('Неверный код подтверждения!')
+        return attrs

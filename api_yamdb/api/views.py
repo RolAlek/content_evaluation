@@ -1,4 +1,3 @@
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -153,7 +152,7 @@ class UserViewSet(ModelViewSet):
         """
 
         self.get_object = self.get_instance
-        if request.method == "PATCH":
+        if request.method == 'PATCH':
             return self.partial_update(request, *args, **kwargs)
         return self.retrieve(request, *args, **kwargs)
 
@@ -162,9 +161,6 @@ class SignupView(CreateAPIView):
     """
     Регистрация нового пользователя и отправка кода подтверждения на почту
     указанную пользователем.
-
-    Если email используется, а имя пользователя свободно - отправить код 400,
-    иначе повторно отправляется код подтверждения на указанный email.
     """
 
     queryset = User.objects.all()
@@ -173,29 +169,6 @@ class SignupView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
-        email = request.data.get('email')
-        username = request.data.get('username')
-        user = User.objects.filter(email=email)
-
-        if User.objects.filter(email=email).exists():
-            if not User.objects.filter(username=username).exists():
-                serializer.is_valid(raise_exception=True)
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            user = get_object_or_404(User, email=email)
-            confirm_email_sendler(
-                email=user.email,
-                user=user
-            )
-            return Response(
-                {'message': 'Пользователь с такими данными уже существует!'
-                 ' Код отправлен повторно! Проверьте почту!'},
-                status=status.HTTP_200_OK
-            )
-
         serializer.is_valid(raise_exception=True)
         user, create = User.objects.get_or_create(**serializer.validated_data)
         confirm_email_sendler(
@@ -220,16 +193,9 @@ class ReceiveTokenView(CreateAPIView):
         """Создание JWT-токена."""
         serializer = ReceiveTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        confirm_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(
             User,
             username=serializer.validated_data.get('username'),
         )
-
-        if not default_token_generator.check_token(user, confirm_code):
-            return Response(
-                data=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
         token = get_auth_jwt_token(user)
         return Response(token, status=status.HTTP_200_OK)
