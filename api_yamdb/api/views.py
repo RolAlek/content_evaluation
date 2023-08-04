@@ -173,29 +173,6 @@ class SignupView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
-        email = request.data.get('email')
-        username = request.data.get('username')
-        user = User.objects.filter(email=email)
-
-        if User.objects.filter(email=email).exists():
-            if not User.objects.filter(username=username).exists():
-                serializer.is_valid(raise_exception=True)
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            user = get_object_or_404(User, email=email)
-            confirm_email_sendler(
-                email=user.email,
-                user=user
-            )
-            return Response(
-                {'message': 'Пользователь с такими данными уже существует!'
-                 ' Код отправлен повторно! Проверьте почту!'},
-                status=status.HTTP_200_OK
-            )
-
         serializer.is_valid(raise_exception=True)
         user, create = User.objects.get_or_create(**serializer.validated_data)
         confirm_email_sendler(
